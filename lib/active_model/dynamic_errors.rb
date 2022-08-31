@@ -13,8 +13,10 @@ module ActiveModel
     def full_messages
       full_messages = []
 
-      each do |attribute, messages|
-        messages = Array.wrap(messages)
+      each do |error|
+        attribute = error.attribute
+        messages = Array.wrap(error.message)
+        
         next if messages.empty?
 
         if attribute == :base
@@ -27,13 +29,13 @@ module ActiveModel
           messages.each do |m|
             if m =~ /^\^/
               options[:default] = "%{message}"
-              full_messages << I18n.t(:"errors.dynamic_format", options.merge(:message => m[1..-1]))
+              full_messages << I18n.t(:"errors.dynamic_format", **options.merge(:message => m[1..-1]))
             elsif m.is_a? Proc
               options[:default] = "%{message}"
-              full_messages << I18n.t(:"errors.dynamic_format", options.merge(:message => m.call(@base)))
+              full_messages << I18n.t(:"errors.dynamic_format", **options.merge(:message => m.call(@base)))
             else
-              full_messages << I18n.t(:"errors.format", options.merge(:message => m))
-            end            
+              full_messages << I18n.t(:"errors.format", **options.merge(:message => m))
+            end
           end
         end
       end
